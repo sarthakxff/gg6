@@ -70,9 +70,19 @@ const commands = [
 async function registerCommands() {
   try {
     const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
-    console.log('🔄 Registering slash commands...');
-    await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), { body: commands });
-    console.log('✅ Slash commands registered.');
+    const guildId = process.env.GUILD_ID;
+
+    if (guildId) {
+      // Guild-specific = instant (appears in seconds)
+      console.log(`🔄 Registering slash commands to guild ${guildId} (instant)...`);
+      await rest.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, guildId), { body: commands });
+      console.log('✅ Guild slash commands registered instantly.');
+    } else {
+      // Global = works everywhere but takes up to 1 hour
+      console.log('🔄 Registering global slash commands (may take up to 1 hour to appear)...');
+      await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), { body: commands });
+      console.log('✅ Global slash commands registered.');
+    }
   } catch (err) {
     console.error('❌ Failed to register commands:', err.message);
   }
